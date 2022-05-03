@@ -34,3 +34,25 @@ li a {
 li a:hover {
   background-color: #111;
 }
+
+.params {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px;
+}
+
+#form-country {
+  padding-right: 10px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#dropdown {
+  padding-left: 10px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#radius{
+  padding: 10px;
+}
