@@ -1,80 +1,126 @@
 import { AgGridReact } from "ag-grid-react";
 import React from "react";
-import { useState, useEffect } from "react";
-import { DropdownItem, DropdownMenu, Dropdown, DropdownToggle } from "reactstrap";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button} from "reactstrap";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import "ag-grid-community/dist/styles/ag-grid.css";
+import "ag-grid-community/dist/styles/ag-theme-balham.css";
+import { CheckError } from "./CheckError";
 
-export default function VolcanoList(props) {
+
+export default function VolcanoList() {
   const columns = [
-    { headerName: "Name", field: "name" },
-    { headerName: "Region", field: "region" },
-    { headerName: "Subregion", field: "subregion" },
+    { headerName: "Name", field: "name", filter: 'agTextColumnFilter' },
+    { headerName: "Region", field: "region", filter: 'agTextColumnFilter' },
+    { headerName: "Subregion", field: "subregion", filter: 'agTextColumnFilter' },
+    { headerName: "Volcano ID", field: "id", filter: 'agNumberColumnFilter'}
   ];  
+  const navigate = useNavigate();
   const [name, setName] = useState("");
-  
-    return (
-      <div className="App">
-        <h1>Volcano List</h1>
-        <div className="params">
-          <div id="form-country">
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-              }}
-            >
-            <label htmlFor="name">Country: </label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              value={name}
-              onChange={(event) => {
-                const newName = event.target.value;
-                setName(newName);
-              }}
-            />
-            </form>
-          </div>
-          <div id="dropdown">
-            <p id="radius">Radius:</p>
-            <Dropdown toggle={function noRefCheck(){}}>
-              <DropdownToggle caret>
-                Select Radius
-              </DropdownToggle>
-              <DropdownMenu>
-                <DropdownItem text>
-                  5km
-                </DropdownItem>
-                <DropdownItem text>
-                  10km
-                </DropdownItem>
-                <DropdownItem text>
-                  30km
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-            </div>
-        </div>
-      </div>
-    );
-  }
-
-function quereyCountrydata(country, radius){
+  const [radius, setRadius] = useState("");
   const [rowData, setRowData] = useState([]);
-  useEffect(() => {
-    fetch("http://sefdb02.qut.edu.au:3001/volcanoes?country=${country}&populatedWithin=${radius}")
-      .then((res) => res.json())
-      .then((data) => data.works)
-      .then((works) =>
-        works.map((work) => {
+
+  // Fetches the data from the resource
+  const QueryCountryData = (country,radius) => {
+    if(radius === ""){
+      fetch(`http://sefdb02.qut.edu.au:3001/volcanoes?country=${country}`)
+      .then(CheckError)
+      .then((data) =>
+        data.map((data) => {
           return{
-            name: work.name,
-            country: work.country,
-            region: work.region,
-            subregion: work.subregion
+            name: data.name,
+            country: data.country,
+            region: data.region,
+            subregion: data.subregion,
+            id: data.id
           };
         })
       )
       .then((rowData) => setRowData(rowData));
-  }, []);
+    }else{
+      fetch(`http://sefdb02.qut.edu.au:3001/volcanoes?country=${country}&populatedWithin=${radius}km`)
+        .then(CheckError)
+        .then((data) =>
+          data.map((data) => {
+            return{
+              name: data.name,
+              country: data.country,
+              region: data.region,
+              subregion: data.subregion,
+              id: data.id
+            };
+          })
+        )
+        .then((rowData) => setRowData(rowData));
+    }
+    
 }
+  return (
+    <div className="App">
+      <h1>Volcano List</h1>
+      <div className="params">
+        <div id="form-country">
+          <form id="form"
+            onSubmit={(event) => {
+              event.preventDefault();
+            }}
+          >
+          <label htmlFor="name">Country: </label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            value={name}
+            onChange={(event) => {
+              const newName = event.target.value;
+              setName(newName);              
+            }}
+          />
+          </form>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+            }}
+          >
+          <label>Populated Within: </label>
+          <select
+            value={radius}
+            onChange={(event) => {
+              const newRadius = event.target.value;
+              setRadius(newRadius);
+            }}
+          >
+            <option value="">--</option>
+            <option value="5">5km</option>
+            <option value="10">10km</option>
+            <option value="30">30km</option>
+            <option value="100">100km</option>
+          </select>
+          </form>
+        </div>
+        <Button color="primary" onClick={() => QueryCountryData(name,radius)}>
+          Submit
+        </Button>
+      </div>
+      <div
+      className="ag-theme-balham"
+      style={{
+        height: "500px",
+        width: "800px"
+      }}
+      >
+      <AgGridReact
+        columnDefs={columns}
+        rowData={rowData}
+        pagination
+        paginationPageSize={15}
+        onRowClicked={(row) => navigate(`/Volcano?name=${row.data.id}`)}
+      />
+      </div>
+    </div>
+  );
+    
+  }
+
+
