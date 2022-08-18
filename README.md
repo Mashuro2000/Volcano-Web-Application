@@ -12,3 +12,13 @@ The application also has the ability for the user to register for an account and
 so that they can see specific more in-depth data. If the user is logged in, they will be able to see the
 population density of that volcano within a certain distance. The program utilizes the REST API created
 from Swagger.
+
+## To Run
+
+In the file directory run the command:
+
+`npm install`
+
+Then to start the local server:
+
+`npm start`
